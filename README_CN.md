@@ -62,7 +62,7 @@ docker-compose up -d
 
 ```bash
 # 下载客户端
-wget https://github.com/friddle/webssh-piko/releases/download/v1.0.0/webssh-piko-linux-amd64 -O ./websshp
+wget https://github.com/friddle/webssh-piko/releases/download/v1.0.1/webssh-piko-linux-amd64 -O ./websshp
 chmod +x ./websshp
 
 ./websshp --name=local --remote=192.168.1.100:8088
@@ -72,7 +72,7 @@ chmod +x ./websshp
 
 ```cmd
 # 下载客户端 (PowerShell)
-Invoke-WebRequest -Uri "https://github.com/friddle/webssh-piko/releases/download/v1.0.0/webssh-piko-windows-amd64.exe" -OutFile "websshp.exe"
+Invoke-WebRequest -Uri "https://github.com/friddle/webssh-piko/releases/download/v1.0.1/webssh-piko-windows-amd64.exe" -OutFile "websshp.exe"
 
 # 带认证的访问
 websshp.exe --name=local --remote=192.168.1.100:8088 --username=admin --password=123456
@@ -82,7 +82,7 @@ websshp.exe --name=local --remote=192.168.1.100:8088 --username=admin --password
 
 ```bash
 # 下载客户端
-curl -L -o websshp https://github.com/friddle/webssh-piko/releases/download/v1.0.0/webssh-piko-darwin-amd64
+curl -L -o websshp https://github.com/friddle/webssh-piko/releases/download/v1.0.1/webssh-piko-darwin-amd64
 chmod +x ./websshp
 
 ./websshp --name=local --remote=192.168.1.100:8088

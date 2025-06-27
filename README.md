@@ -65,7 +65,7 @@ docker-compose up -d
 
 ```bash
 # Download client
-wget https://github.com/friddle/webssh-piko/releases/download/v1.0.0/webssh-piko-linux-amd64 -O ./websshp
+wget https://github.com/friddle/webssh-piko/releases/download/v1.0.1/webssh-piko-linux-amd64 -O ./websshp
 chmod +x ./websshp
 
 ./websshp --name=local --remote=192.168.1.100:8088
