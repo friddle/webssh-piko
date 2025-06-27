@@ -10,7 +10,6 @@ piko: https://github.com/andydunstall/piko
 ## Features
 
 - 🚀 **Lightweight**: Terminal-based remote assistance with low resource usage
-- 🌐 **Network-friendly**: Supports intranet penetration, no public IP required
 - 🔧 **Easy Deployment**: One-click Docker deployment with simple configuration
 - 🔒 **Secure & Reliable**: Based on SSH protocol with user authentication support
 - 📱 **Cross-platform**: Supports Linux, macOS, Windows
