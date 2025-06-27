@@ -70,12 +70,12 @@ chmod +x ./websshp
 
 #### Windows客户端
 
-```cmd
-# 下载客户端 (PowerShell)
+```powershell
+# Download client (PowerShell)
 Invoke-WebRequest -Uri "https://github.com/friddle/webssh-piko/releases/download/v1.0.1/webssh-piko-windows-amd64.exe" -OutFile "websshp.exe"
 
-# 带认证的访问
-websshp.exe --name=local --remote=192.168.1.100:8088 --username=admin --password=123456
+# Access with authentication
+Start-Process -FilePath websshp.exe -ArgumentList "--name=admin --remote=http://192.168.1.100:8088" -NoNewWindow -Wait
 ```
 
 #### macOS 客户端

@@ -73,13 +73,15 @@ chmod +x ./websshp
 
 #### Windows Client
 
-```cmd
+```powershell
 # Download client (PowerShell)
 Invoke-WebRequest -Uri "https://github.com/friddle/webssh-piko/releases/download/v1.0.1/webssh-piko-windows-amd64.exe" -OutFile "websshp.exe"
 
 # Access with authentication
-websshp.exe --name=local --remote=192.168.1.100:8088 --username=admin --password=123456
+Start-Process -FilePath websshp.exe -ArgumentList "--name=admin --remote=http://192.168.1.100:8088" -NoNewWindow -Wait
 ```
+
+
 
 #### macOS Client
 
