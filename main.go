@@ -209,12 +209,14 @@ func (sm *ServiceManager) startServices() error {
 		select {
 		case sig := <-c:
 			fmt.Printf("\n🛑 收到停止信号 %v，正在关闭服务...\n", sig)
+			sm.cancel() // 取消 context，通知所有服务停止
 			return nil
 		case <-sm.ctx.Done():
 			return sm.ctx.Err()
 		}
-	}, func(error) {
-		sm.cancel()
+	}, func(err error) {
+		// 清理函数：确保信号处理被正确清理
+		signal.Stop(make(chan os.Signal, 1))
 	})
 
 	// 24小时超时
@@ -315,6 +317,7 @@ func (sm *ServiceManager) startPiko() error {
 		if server == nil {
 			return fmt.Errorf("创建 HTTP 代理服务器失败")
 		}
+
 		// 启动代理服务器
 		go func() {
 			if err := server.Serve(ln); err != nil {
@@ -322,6 +325,10 @@ func (sm *ServiceManager) startPiko() error {
 			}
 		}()
 	}
+
+	// 等待 context 取消
+	<-sm.ctx.Done()
+	fmt.Printf("✅ Piko服务已停止\n")
 	return nil
 }
 
@@ -358,7 +365,34 @@ func (sm *ServiceManager) startWebServer() error {
 			controller.UploadProgressWs(c)
 		})
 	}
-	return server.Run(fmt.Sprintf(":%d", sm.config.ServerPort))
+
+	// 创建 HTTP 服务器
+	httpServer := &http.Server{
+		Addr:    fmt.Sprintf(":%d", sm.config.ServerPort),
+		Handler: server,
+	}
+
+	// 在 goroutine 中启动服务器
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			fmt.Printf("Web服务器错误: %v\n", err)
+		}
+	}()
+
+	// 等待 context 取消
+	<-sm.ctx.Done()
+
+	// 优雅关闭服务器
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := httpServer.Shutdown(shutdownCtx); err != nil {
+		fmt.Printf("关闭Web服务器时出错: %v\n", err)
+		return err
+	}
+
+	fmt.Printf("✅ Web服务器已优雅关闭\n")
+	return nil
 }
 
 // staticRouter 设置静态文件路由
