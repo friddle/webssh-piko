@@ -164,10 +164,10 @@ func (sm *ServiceManager) Start() error {
 	fmt.Printf("远程服务器: %s\n", sm.config.Remote)
 
 	// 自动分配可用端口（如果未指定）
-	fmt.Printf("本地监听端口: %d\n", sm.config.ServerPort)
 	if sm.config.ServerPort == 0 {
 		sm.config.ServerPort = FindAvailablePort()
 	}
+	fmt.Printf("本地监听端口: %d\n", sm.config.ServerPort)
 
 	// 使用 oklog/run 启动服务
 	return sm.startServices()
