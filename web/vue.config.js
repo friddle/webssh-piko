@@ -1,8 +1,11 @@
 const proxyTarget = 'http://127.0.0.1:5032'
 const wsTarget = proxyTarget.replace('http', 'ws')
 
+// 动态获取publicPath
+
+
 module.exports = {
-    publicPath: '/friddle',
+    publicPath: './',
     outputDir: 'dist',
 
     // 放置静态资源的地方 (js/css/img/font/...)

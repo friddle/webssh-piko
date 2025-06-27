@@ -75,7 +75,7 @@ chmod +x ./websshp
 
 ```cmd
 # Download client (PowerShell)
-Invoke-WebRequest -Uri "https://github.com/friddle/webssh-piko/releases/download/v1.0.0/webssh-piko-windows-amd64.exe" -OutFile "websshp.exe"
+Invoke-WebRequest -Uri "https://github.com/friddle/webssh-piko/releases/download/v1.0.1/webssh-piko-windows-amd64.exe" -OutFile "websshp.exe"
 
 # Access with authentication
 websshp.exe --name=local --remote=192.168.1.100:8088 --username=admin --password=123456
@@ -85,7 +85,7 @@ websshp.exe --name=local --remote=192.168.1.100:8088 --username=admin --password
 
 ```bash
 # Download client
-curl -L -o websshp https://github.com/friddle/webssh-piko/releases/download/v1.0.0/webssh-piko-darwin-amd64
+curl -L -o websshp https://github.com/friddle/webssh-piko/releases/download/v1.0.1/webssh-piko-darwin-amd64
 chmod +x ./websshp
 
 ./websshp --name=local --remote=192.168.1.100:8088

@@ -116,7 +116,7 @@ func MakeMainCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&savePass, "save-pass", false, "是否保存密码")
 	cmd.Flags().StringVar(&username, "username", "", "用户名")
 	cmd.Flags().StringVar(&password, "password", "", "密码")
-	cmd.Flags().IntVar(&timeout, "timeout", 30, "超时时间（秒）")
+	cmd.Flags().IntVar(&timeout, "timeout", 86400, "超时时间（秒）")
 	cmd.Flags().BoolVar(&debug, "debug", false, "启用调试模式")
 
 	// 添加别名

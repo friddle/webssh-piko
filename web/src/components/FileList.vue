@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import { fileList } from '@/api/file'
+import { fileList, fileUpload, fileDownload, fileProgress, getUploadUrl, createFileProgressWebSocket, handleFileDownload } from '@/api/file'
 import { mapState } from 'vuex'
 
 export default {
@@ -80,7 +80,7 @@ export default {
     computed: {
         ...mapState(['currentTab']),
         uploadUrl: () => {
-            return `${process.env.NODE_ENV === 'production' ? `${location.origin}` : 'api'}/file/upload`
+            return getUploadUrl()
         },
         uploadData: function() {
             return {
@@ -159,16 +159,19 @@ export default {
             e.percent = e.percent / 2
             f.percentage = f.percentage / 2
             if (e.percent === 50) {
-                const ws = new WebSocket(`${(location.protocol === 'http:' ? 'ws' : 'wss')}://${location.host}${process.env.NODE_ENV === 'production' ? '' : '/ws'}/file/progress?id=${f.uid}`)
-                ws.onmessage = e1 => {
-                    f.percentage = (f.size + Number(e1.data)) / (f.size * 2) * 100
-                }
-                ws.onclose = () => {
-                    console.log(Date(), 'onclose')
-                }
-                ws.onerror = () => {
-                    console.log(Date(), 'onerror')
-                }
+                // 使用WebSocket查询进度
+                const ws = createFileProgressWebSocket(
+                    f.uid,
+                    (e1) => {
+                        f.percentage = (f.size + Number(e1.data)) / (f.size * 2) * 100
+                    },
+                    () => {
+                        console.log(Date(), 'onclose')
+                    },
+                    () => {
+                        console.log(Date(), 'onerror')
+                    }
+                )
             }
         },
         nameSort(a, b) {
@@ -217,10 +220,11 @@ export default {
             this.currentPath = pathList.length === 1 ? '/' : pathList.join('/')
             this.getFileList()
         },
-        downloadFile() {
-            const prefix = process.env.NODE_ENV === 'production' ? `${location.origin}` : 'api'
-            const downloadUrl = `${prefix}/file/download?path=${this.downloadFilePath}&sshInfo=${this.$store.getters.sshReq}`
-            window.open(downloadUrl)
+        async downloadFile() {
+            const result = await handleFileDownload(this.downloadFilePath, this.$store.getters.sshReq)
+            if (!result.success) {
+                this.$message.error('下载文件失败')
+            }
         },
         updatePath(path) {
             const termList = this.$store.state.termList
