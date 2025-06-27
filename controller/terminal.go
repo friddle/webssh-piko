@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	"webssh/core"
+	"webssh-piko/core"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"

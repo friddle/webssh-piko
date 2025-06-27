@@ -1,0 +1,157 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    tags: [ v* ]
+  release:
+    types: [ published ]
+  workflow_dispatch:
+    inputs:
+      run_client:
+        description: 'Run client build and test'
+        required: false
+        default: true
+        type: boolean
+      run_server:
+        description: 'Run server build and test'
+        required: false
+        default: true
+        type: boolean
+      run_release:
+        description: 'Run release job'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # 客户端构建和测试
+  client:
+    name: Client Build & Test
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.run_client == 'true')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache: true
+
+      - name: Build client for all platforms
+        run: |
+          cd client
+          make build-all
+
+      - name: Upload client artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-binaries
+          path: client/dist/
+          retention-days: 30
+
+  # 发布
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    if: |
+      (github.event_name == 'release') || 
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_release == 'true')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push client release
+        run: |
+          cd client
+          make build-all
+
+      - name: Build and push server release
+        run: |
+          cd server
+          DOCKER_REGISTRY=${{ env.REGISTRY }} make build-push
+
+      - name: Create Release
+        if: github.event_name == 'workflow_dispatch'
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          release_name: Release ${{ github.event.release.tag_name }}
+          body: |
+            Release ${{ github.event.release.tag_name }}
+            
+            ## Binaries
+            This release includes binaries for the following platforms:
+            - Linux (AMD64)
+            - Linux (ARM64)
+            - macOS (AMD64)
+            - macOS (ARM64)
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url || github.event.release.upload_url }}
+          asset_path: ./client/dist/gottyp-linux-amd64
+          asset_name: gottyp-linux-amd64
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Assets - Linux ARM64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url || github.event.release.upload_url }}
+          asset_path: ./client/dist/gottyp-linux-arm64
+          asset_name: gottyp-linux-arm64
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Assets - Darwin AMD64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url || github.event.release.upload_url }}
+          asset_path: ./client/dist/gottyp-darwin-amd64
+          asset_name: gottyp-darwin-amd64
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Assets - Darwin ARM64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url || github.event.release.upload_url }}
+          asset_path: ./client/dist/gottyp-darwin-arm64
+          asset_name: gottyp-darwin-arm64
+          asset_content_type: application/octet-stream 

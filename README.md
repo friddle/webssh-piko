@@ -1,45 +1,124 @@
-# webssh
-![](https://img.shields.io/github/v/release/Jrohy/webssh.svg) 
-![](https://img.shields.io/docker/pulls/jrohy/webssh.svg) 
-[![Go Report Card](https://goreportcard.com/badge/github.com/Jrohy/webssh)](https://goreportcard.com/report/github.com/Jrohy/webssh)
-[![Downloads](https://img.shields.io/github/downloads/Jrohy/webssh/total.svg)](https://img.shields.io/github/downloads/Jrohy/webssh/total.svg) 
-[![License](https://img.shields.io/badge/license-GPL%20V3-blue.svg?longCache=true)](https://www.gnu.org/licenses/gpl-3.0.en.html)   
-简易在线ssh和sftp工具, 可在线敲命令和上传下载文件
+# webssh-piko
 
-## 运行截图
-![avatar](asset/1.png)
-![avatar](asset/2.png)
+[中文文档](README_CN.md) | English
 
-## 命令行
-```
-Usage of ./webssh_linux_amd64:
-  -a string
-        开启账号密码登录验证, '-a user:pass'的格式传参
-  -p int
-        服务运行端口 (default 5032)
-  -t int
-        ssh连接超时时间(min) (default 120)
-  -s    保存ssh密码
-  -v    显示版本号
-```
+An efficient terminal-based remote assistance tool that integrates gotty and piko services. Designed for remote assistance in complex network environments, avoiding the high bandwidth dependency of traditional remote desktop solutions while eliminating the need for complex network configurations and public IP addresses.
 
-## 原理
+webssh: https://github.com/Jrohy/webssh
+piko: https://github.com/andydunstall/piko
+
+## Features
+
+- 🚀 **Lightweight**: Terminal-based remote assistance with low resource usage
+- 🌐 **Network-friendly**: Supports intranet penetration, no public IP required
+- 🔧 **Easy Deployment**: One-click Docker deployment with simple configuration
+- 🔒 **Secure & Reliable**: Based on SSH protocol with user authentication support
+- 📱 **Cross-platform**: Supports Linux, macOS
+- 💻 **Smart Shell**: Automatically selects appropriate shell based on operating system (PowerShell for Windows, Bash for Linux)
+
+## Architecture
+
 ```
-+---------+     http     +--------+    ssh    +-----------+
-| browser | <==========> | webssh | <=======> | ssh server|
-+---------+   websocket  +--------+    ssh    +-----------+
+Client (webssh-piko client)
+    ↓ Local Shell
+gotty service
+    ↓ HTTP access
+Browser terminal
 ```
 
-## 运行
-1. 下载[releases](https://github.com/Jrohy/webssh/releases)里不同平台的包来执行即可  
+## Quick Start
 
-2. docker运行:  
-    ```
-    docker run -d --net=host --log-driver json-file --log-opt max-file=1 --log-opt max-size=100m --restart always --name webssh -e TZ=Asia/Shanghai jrohy/webssh
-    ```
-    支持添加的环境变量:
-    ```
-    port: web使用端口, 默认5032
-    savePass: 是否保存密码, 默认true
-    authInfo: 开启账号密码登录验证, 'user:pass'的格式设置
-    ```
+### Server Deployment
+
+1. **Deploy using Docker Compose**
+
+```yaml
+# docker-compose.yaml
+version: "3.8"
+services:
+  piko:
+    image: ghcr.io/friddle/webssh-piko-server:latest
+    container_name: webssh-piko-server
+    environment:
+      - PIKO_UPSTREAM_PORT=8022
+      - LISTEN_PORT=8088
+    ports:
+      - "8022:8022"
+      - "8088:8088"
+    restart: unless-stopped
+```
+
+Or using Docker directly:
+
+```bash
+docker run -ti --network=host --rm --name=piko-server ghcr.io/friddle/webssh-piko-server
+```
+
+
+2. **Start the service**
+
+```bash
+docker-compose up -d
+```
+
+### Client Usage
+
+#### Linux Client
+
+```bash
+# Download client
+wget https://github.com/friddle/webssh-piko/releases/download/v1.0.0/websshp-linux-amd64 -O ./websshp
+chmod +x ./websshp
+
+./websshp --name=local --remote=192.168.1.100:8088(ServerIP:PORT)
+```
+
+#### macOS Client
+
+```bash
+# Download client
+curl -L -o websshp https://github.com/friddle/webssh-piko/releases/download/v1.0.0/websshp-darwin-amd64
+chmod +x ./websshp
+
+./websshp --name=local --remote=192.168.1.100:8088(ServerIP:PORT)
+```
+
+![Client Start Screenshot](screenshot/start_cli.png)
+![Web UI Screenshot](screenshot/webui.png)
+
+## Access Methods
+
+After starting the client, access the corresponding terminal via:
+```
+http://host-server-ip:port/client-name
+```
+
+Example:
+- Server listening address: `192.168.1.100:8088` (server IP and NGINX)
+- Client name: `local`
+- Access URL: `http://192.168.1.100:8088/local`
+
+## Configuration
+
+### Client Parameters
+
+| Parameter | Description | Default | Required |
+|-----------|-------------|---------|----------|
+| `--name` | piko client identifier name | - | ✅ |
+| `--remote` | Remote piko server address (format: host:port) | - | ✅ |
+| `--terminal` | Specify terminal type to use (zsh, bash, sh, powershell, etc.) | Auto-select | ❌ |
+
+### Server Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PIKO_UPSTREAM_PORT` | Piko upstream port | 8022 |
+| `LISTEN_PORT` | HTTP listen port | 8088 |
+
+### Shell Selection
+
+The client automatically selects the appropriate shell based on the operating system:
+- **Linux/macOS**: Bash
+- **Others**: sh
+
+You can also manually specify the terminal type using the `--terminal` parameter or `TERMINAL` environment variable.
